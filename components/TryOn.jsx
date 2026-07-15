@@ -15,53 +15,108 @@ function mulberry(seed) {
   };
 }
 
-/* Draw flowing hair around a head anchor. Two side curtains + crown wisps,
-   leaving the face open. Colours come from the selected collection. */
+/* Draw hair the way a handmade piece sits on a real head: strands rise from a
+   soft side-parting on the crown, hug the sides of the face, then fall and
+   flare. Three passes — seated shadow, dense base, fine highlights — so the
+   piece looks anchored to the uploaded photo rather than pasted on. */
 function drawHair(g, cx, cy, size, length, top, bottom) {
   const rnd = mulberry(42);
-  const rx = 95 * size;
-  const L = 300 * length * size;
-  const hi = bottom.map(v => Math.min(255, v * 1.5 + 34));
-  const lo = top.map(v => Math.max(0, v * 0.6));
+  const rx = 92 * size;                       // head half-width
+  const crownY = cy - rx * 0.72;              // top of head
+  const jawY = cy + rx * 0.62;
+  const L = 330 * length * size;              // fall below the jaw
+  const part = -0.22 + rnd() * 0.44;          // parting offset, -1..1 across crown
+
+  const hi = bottom.map(v => Math.min(255, v * 1.55 + 40));
+  const mid = bottom;
+  const lo = top.map(v => Math.max(0, v * 0.55));
+
+  const strandPath = (emit) => {
+    // start on the crown arc
+    const a = Math.PI * (0.1 + rnd() * 0.8);          // across the top
+    const sx = cx + Math.cos(a) * rx * 0.98;
+    const sy = crownY + (1 - Math.sin(a)) * rx * 0.55;
+    // strands flow away from the parting, like combed hair
+    const side = Math.cos(a) >= part * 0.9 ? 1 : -1;
+    const hug = rx * (1.02 + rnd() * 0.22);           // hugs the cheek
+    const flare = rx * (0.55 + rnd() * 0.85);         // flares past the jaw
+    const tipX = cx + side * (rx * 0.45 + flare * (0.4 + rnd() * 0.6));
+    const tipY = jawY + L * (0.72 + rnd() * 0.45);
+    emit(
+      sx, sy,
+      cx + side * hug, cy - rx * 0.05 + rnd() * rx * 0.3,   // cheek control
+      cx + side * (hug * 1.02 + rnd() * 14), jawY + L * 0.4, // fall control
+      tipX, tipY
+    );
+  };
 
   g.save();
   g.lineCap = 'round';
 
-  const strand = (x0, y0, dir, len, wobble) => {
-    const drift = dir * (28 + rnd() * 60) + (rnd() - 0.5) * 30;
-    const sway = (rnd() - 0.5) * wobble;
-    const grad = g.createLinearGradient(x0, y0, x0 + drift, y0 + len);
-    const cA = rnd() > 0.45 ? hi : bottom;
-    const cB = rnd() > 0.5 ? bottom : lo;
-    grad.addColorStop(0, `rgba(${cA.map(Math.round).join(',')},${0.5 + rnd() * 0.4})`);
-    grad.addColorStop(1, `rgba(${cB.map(Math.round).join(',')},${0.25 + rnd() * 0.35})`);
-    g.strokeStyle = grad;
-    g.lineWidth = 1.2 + rnd() * 2.4;
+  // pass 1 — seated shadow so the piece belongs to the photo
+  g.save();
+  if ('filter' in g) g.filter = 'blur(5px)';
+  g.strokeStyle = 'rgba(20,12,6,0.16)';
+  for (let i = 0; i < 55; i++) {
+    strandPath((x0, y0, c1x, c1y, c2x, c2y, tx, ty) => {
+      g.lineWidth = 5 + rnd() * 6;
+      g.beginPath();
+      g.moveTo(x0, y0 + 4);
+      g.bezierCurveTo(c1x + 5, c1y + 6, c2x + 5, c2y + 6, tx + 4, ty + 5);
+      g.stroke();
+    });
+  }
+  g.restore();
+
+  // pass 2 — dense base coat
+  for (let i = 0; i < 170; i++) {
+    strandPath((x0, y0, c1x, c1y, c2x, c2y, tx, ty) => {
+      const grad = g.createLinearGradient(x0, y0, tx, ty);
+      const cA = rnd() > 0.35 ? mid : lo;
+      const cB = rnd() > 0.55 ? mid : lo;
+      grad.addColorStop(0, `rgba(${cA.map(Math.round).join(',')},${0.55 + rnd() * 0.35})`);
+      grad.addColorStop(1, `rgba(${cB.map(Math.round).join(',')},${0.3 + rnd() * 0.3})`);
+      g.strokeStyle = grad;
+      g.lineWidth = 1.6 + rnd() * 2.6;
+      g.beginPath();
+      g.moveTo(x0, y0);
+      g.bezierCurveTo(c1x, c1y, c2x, c2y, tx, ty);
+      g.stroke();
+    });
+  }
+
+  // pass 3 — fine catch-light strands
+  for (let i = 0; i < 60; i++) {
+    strandPath((x0, y0, c1x, c1y, c2x, c2y, tx, ty) => {
+      const grad = g.createLinearGradient(x0, y0, tx, ty);
+      grad.addColorStop(0, `rgba(${hi.map(Math.round).join(',')},${0.35 + rnd() * 0.3})`);
+      grad.addColorStop(1, `rgba(${hi.map(Math.round).join(',')},0.08)`);
+      g.strokeStyle = grad;
+      g.lineWidth = 0.8 + rnd() * 1.1;
+      g.beginPath();
+      g.moveTo(x0, y0);
+      g.bezierCurveTo(c1x, c1y, c2x, c2y, tx, ty);
+      g.stroke();
+    });
+  }
+
+  // a few loose face-framing wisps
+  for (let i = 0; i < 10; i++) {
+    const side = i % 2 ? 1 : -1;
+    const x0 = cx + side * rx * (0.5 + rnd() * 0.3);
+    const y0 = crownY + rx * (0.25 + rnd() * 0.2);
+    g.strokeStyle = `rgba(${mid.map(Math.round).join(',')},${0.35 + rnd() * 0.25})`;
+    g.lineWidth = 1 + rnd();
     g.beginPath();
     g.moveTo(x0, y0);
     g.bezierCurveTo(
-      x0 + sway, y0 + len * 0.35,
-      x0 + drift - sway * 0.4, y0 + len * 0.7,
-      x0 + drift, y0 + len
+      x0 + side * 8, y0 + rx * 0.8,
+      cx + side * rx * (0.75 + rnd() * 0.2), cy + rx * 0.8,
+      cx + side * rx * (0.6 + rnd() * 0.3), jawY + L * 0.35 * (0.6 + rnd() * 0.5)
     );
     g.stroke();
-  };
+  }
 
-  // crown wisps across the top of the head
-  for (let i = 0; i < 46; i++) {
-    const a = -Math.PI * 0.92 + (i / 46) * Math.PI * 0.84;
-    const x0 = cx + Math.cos(a) * rx * 0.92;
-    const y0 = cy + Math.sin(a) * rx * 1.02 * 0.72;
-    strand(x0, y0, Math.cos(a) >= 0 ? 1 : -1, L * (0.85 + rnd() * 0.3), 60);
-  }
-  // left + right curtains
-  for (let side = -1; side <= 1; side += 2) {
-    for (let i = 0; i < 60; i++) {
-      const x0 = cx + side * (rx * (0.62 + rnd() * 0.5));
-      const y0 = cy - rx * 0.45 + rnd() * rx * 0.9;
-      strand(x0, y0, side, L * (0.9 + rnd() * 0.35), 44);
-    }
-  }
   g.restore();
 }
 

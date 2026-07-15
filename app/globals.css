@@ -125,11 +125,24 @@ html, body {
   font-size: 15px;
   color: var(--ink);
 }
+#topbar .topright { display: flex; align-items: center; gap: 22px; }
 #topbar .bag {
   font-size: 11px;
   letter-spacing: .25em;
   color: var(--espresso);
 }
+#mirrorbtn {
+  padding: 9px 18px;
+  background: transparent;
+  border: 1px solid var(--gold-d);
+  color: var(--gold-d);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 10px;
+  letter-spacing: .28em;
+  cursor: pointer;
+  transition: background .3s, color .3s;
+}
+#mirrorbtn:hover { background: var(--gold-d); color: #fff; }
 
 /* ---------- stop info ---------- */
 #stopinfo {

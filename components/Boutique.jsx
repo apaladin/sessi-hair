@@ -47,7 +47,8 @@ export default function Boutique() {
       if (params.has('autoplay')) {
         setEntered(true);
         setShowIntro(false);
-        api.goTo(parseInt(params.get('stop') || '0', 10) || 0, true);
+        const sp = params.get('stop') || '0';
+        if (sp !== 'entry') api.goTo(parseInt(sp, 10) || 0, true);
         if (params.has('tryon')) setTryOn(parseInt(params.get('tryon'), 10) || 0);
       }
     })();
@@ -121,8 +122,13 @@ export default function Boutique() {
       {/* chrome */}
       <header id="topbar" className={`ui ${entered ? '' : 'hidden'}`}>
         <div className="brand">S E S S I &nbsp; H A I R</div>
-        <div className="bag">
-          BAG <span>({bag})</span>
+        <div className="topright">
+          <button id="mirrorbtn" onClick={() => setTryOn(0)}>
+            ✦ THE MIRROR
+          </button>
+          <div className="bag">
+            BAG <span>({bag})</span>
+          </div>
         </div>
       </header>
 
@@ -159,7 +165,7 @@ export default function Boutique() {
         </button>
       </nav>
       <div id="navhint" className={`ui ${entered && stop === 0 ? '' : 'hidden'}`}>
-        Scroll, use the arrows, or tap a room below — drag to glance around
+        Scroll or tap a collection below — drag to glance around
       </div>
 
       {/* product card */}
