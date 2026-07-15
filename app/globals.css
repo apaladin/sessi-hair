@@ -131,7 +131,7 @@ html, body {
   letter-spacing: .25em;
   color: var(--espresso);
 }
-#mirrorbtn {
+#mirrorbtn, #catalogbtn {
   padding: 9px 18px;
   background: transparent;
   border: 1px solid var(--gold-d);
@@ -142,7 +142,9 @@ html, body {
   cursor: pointer;
   transition: background .3s, color .3s;
 }
-#mirrorbtn:hover { background: var(--gold-d); color: #fff; }
+#mirrorbtn:hover, #catalogbtn:hover { background: var(--gold-d); color: #fff; }
+#catalogbtn { background: var(--ink); border-color: var(--ink); color: var(--champ); }
+#catalogbtn:hover { background: var(--espresso); border-color: var(--espresso); color: var(--champ); }
 
 /* ---------- stop info ---------- */
 #stopinfo {
@@ -408,6 +410,175 @@ html, body {
   font-size: 10px;
   letter-spacing: .1em;
   color: rgba(74, 58, 44, .4);
+}
+
+/* ---------- the catalogue ---------- */
+#catalog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: rgba(34, 28, 21, .4);
+  backdrop-filter: blur(7px);
+  animation: fadein .4s ease;
+  padding: 18px;
+}
+#catalog {
+  position: relative;
+  width: min(1180px, 100%);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  background: var(--paper);
+  border-top: 3px solid var(--gold);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, .4);
+  padding: 44px 52px 30px;
+}
+.cat-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: var(--espresso);
+  cursor: pointer;
+  z-index: 2;
+}
+.cat-head { text-align: center; }
+.cat-label {
+  font-family: var(--font-serif), serif;
+  letter-spacing: .5em;
+  font-size: 12px;
+  color: var(--gold);
+}
+.cat-title {
+  font-family: var(--font-serif), serif;
+  font-weight: 500;
+  font-size: clamp(34px, 5vw, 52px);
+  margin-top: 10px;
+  color: var(--ink);
+}
+.cat-sub {
+  font-family: var(--font-serif), serif;
+  font-style: italic;
+  color: var(--muted);
+  margin-top: 8px;
+  font-size: 15px;
+}
+.cat-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0 6px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--champ);
+}
+.cat-tabs button {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(150, 121, 75, .35);
+  background: transparent;
+  color: var(--espresso);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 11px;
+  letter-spacing: .12em;
+  cursor: pointer;
+  transition: background .25s, color .25s, border-color .25s;
+}
+.cat-tabs button:hover { background: var(--champ); }
+.cat-tabs button.sel { background: var(--ink); color: var(--champ); border-color: var(--ink); }
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 34px 26px;
+  margin-top: 30px;
+}
+.cat-card {
+  opacity: 0;
+  animation: rise .7s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+.cat-imgwrap {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  cursor: pointer;
+  background: var(--champ);
+}
+.cat-imgwrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .8s cubic-bezier(.2, .7, .3, 1);
+}
+.cat-imgwrap:hover img { transform: scale(1.06); }
+.cat-hover {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 12px 0;
+  text-align: center;
+  background: rgba(34, 28, 21, .78);
+  color: var(--champ);
+  font-size: 9.5px;
+  letter-spacing: .3em;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .35s, transform .35s;
+  pointer-events: none;
+}
+.cat-imgwrap:hover .cat-hover { opacity: 1; transform: none; }
+.cat-colname {
+  margin-top: 12px;
+  font-size: 9px;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--gold-d);
+}
+.cat-prodname {
+  font-family: var(--font-serif), serif;
+  font-size: 19px;
+  margin-top: 3px;
+  color: var(--ink);
+}
+.cat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 4px;
+}
+.cat-price { font-size: 13px; letter-spacing: .06em; color: var(--espresso); }
+.cat-stars { font-size: 11px; color: var(--gold-d); }
+.cat-actions { display: flex; gap: 6px; margin-top: 10px; }
+.cat-actions button {
+  flex: 1;
+  padding: 10px 0;
+  border: 1px solid var(--gold-d);
+  background: transparent;
+  color: var(--gold-d);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 9.5px;
+  letter-spacing: .22em;
+  cursor: pointer;
+  transition: background .3s, color .3s;
+}
+.cat-actions button:hover { background: var(--gold-d); color: #fff; }
+.cat-actions button.dark { background: var(--ink); border-color: var(--ink); color: var(--champ); }
+.cat-actions button.dark:hover { background: var(--espresso); }
+.cat-foot {
+  margin-top: 36px;
+  padding-top: 16px;
+  border-top: 1px solid var(--champ);
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: .14em;
+  color: var(--muted);
+}
+@media (max-width: 640px) {
+  #catalog { padding: 26px 18px 20px; }
+  .cat-grid { gap: 24px 14px; grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ---------- try it on (The Mirror) ---------- */

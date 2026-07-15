@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { COLLECTIONS, STOPS } from '../lib/data';
 import TryOn from './TryOn';
+import Catalog from './Catalog';
 
 export default function Boutique() {
   const canvasRef = useRef(null);
@@ -17,6 +18,7 @@ export default function Boutique() {
   const [toast, setToast] = useState(null);
   const [productOpen, setProductOpen] = useState(false);
   const [tryOn, setTryOn] = useState(null);        // collection index or null
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const [autoTour, setAutoTour] = useState(false);
   const [variant, setVariant] = useState(0);
 
@@ -50,6 +52,7 @@ export default function Boutique() {
         const sp = params.get('stop') || '0';
         if (sp !== 'entry') api.goTo(parseInt(sp, 10) || 0, true);
         if (params.has('tryon')) setTryOn(parseInt(params.get('tryon'), 10) || 0);
+        if (params.has('catalog')) setCatalogOpen(true);
       }
     })();
     return () => {
@@ -67,7 +70,7 @@ export default function Boutique() {
     const onKey = (e) => {
       if (e.key === 'ArrowRight') goTo(stop + 1);
       if (e.key === 'ArrowLeft') goTo(stop - 1);
-      if (e.key === 'Escape') { setProductOpen(false); setTryOn(null); }
+      if (e.key === 'Escape') { setProductOpen(false); setTryOn(null); setCatalogOpen(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -123,6 +126,9 @@ export default function Boutique() {
       <header id="topbar" className={`ui ${entered ? '' : 'hidden'}`}>
         <div className="brand">S E S S I &nbsp; H A I R</div>
         <div className="topright">
+          <button id="catalogbtn" onClick={() => setCatalogOpen(true)}>
+            THE CATALOGUE
+          </button>
           <button id="mirrorbtn" onClick={() => setTryOn(0)}>
             ✦ THE MIRROR
           </button>
@@ -182,7 +188,7 @@ export default function Boutique() {
             <p className="p-desc">{collection.desc}</p>
             <div className="p-look-label">THE LOOK</div>
             <div className="p-look">
-              {collection.models.map((src) => (
+              {collection.models.slice(0, 3).map((src) => (
                 <img
                   key={src}
                   src={src.replace(/w=\d+&h=\d+/, 'w=400&h=520')}
@@ -254,6 +260,20 @@ export default function Boutique() {
 
       {tryOn !== null && (
         <TryOn initialCollection={tryOn} onClose={() => setTryOn(null)} />
+      )}
+
+      {catalogOpen && (
+        <Catalog
+          onClose={() => setCatalogOpen(false)}
+          onVisit={(ci) => { setCatalogOpen(false); goTo(ci); }}
+          onTryOn={(ci) => { setCatalogOpen(false); setTryOn(ci); }}
+          onAdd={(c, p) => {
+            setBag((b) => b + 1);
+            setToast(`${p.n} (${c.name}) added to your bag — concept demo`);
+            clearTimeout(toastTimer.current);
+            toastTimer.current = setTimeout(() => setToast(null), 2600);
+          }}
+        />
       )}
 
       <div id="demofoot" className={`ui ${entered ? '' : 'hidden'}`}>
