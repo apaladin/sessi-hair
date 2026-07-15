@@ -14,7 +14,8 @@ export default function Boutique() {
   const [entered, setEntered] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [stop, setStop] = useState(0);
-  const [bag, setBag] = useState(0);
+  const [bagItems, setBagItems] = useState([]);
+  const [bagOpen, setBagOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [productOpen, setProductOpen] = useState(false);
   const [tryOn, setTryOn] = useState(null);        // collection index or null
@@ -88,13 +89,18 @@ export default function Boutique() {
     goTo(0);
   };
 
-  const addToBag = () => {
-    setBag((b) => b + 1);
-    const item = collection?.products?.[variant];
-    setToast(`${item ? item.n + ' added' : 'Added'} to your bag — concept demo`);
+  const pushToBag = useCallback((c, p) => {
+    setBagItems((items) => [...items, { n: p.n, p: p.p, cname: c.name }]);
+    setToast(`${p.n} (${c.name}) added to your bag`);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2600);
+  }, []);
+
+  const addToBag = () => {
+    if (collection) pushToBag(collection, collection.products[variant]);
   };
+
+  const bagTotal = bagItems.reduce((s, it) => s + (parseInt(it.p.replace(/\D/g, ''), 10) || 0), 0);
 
   return (
     <>
@@ -132,11 +138,55 @@ export default function Boutique() {
           <button id="mirrorbtn" onClick={() => setTryOn(0)}>
             ✦ THE MIRROR
           </button>
-          <div className="bag">
-            BAG <span>({bag})</span>
-          </div>
+          <button className="bag" onClick={() => setBagOpen(!bagOpen)}>
+            BAG <span>({bagItems.length})</span>
+          </button>
         </div>
       </header>
+
+      {/* bag drawer */}
+      <aside id="bagdrawer" className={bagOpen && entered ? '' : 'hidden'}>
+        <div className="bd-head">YOUR BAG</div>
+        {bagItems.length === 0 ? (
+          <p className="bd-empty">Your bag is empty — the boutique awaits.</p>
+        ) : (
+          <>
+            {bagItems.map((it, i) => (
+              <div className="bd-row" key={i}>
+                <div>
+                  <div className="bd-name">{it.n}</div>
+                  <div className="bd-col">{it.cname}</div>
+                </div>
+                <div className="bd-right">
+                  <span className="bd-price">{it.p}</span>
+                  <button
+                    className="bd-remove"
+                    aria-label="Remove"
+                    onClick={() => setBagItems(bagItems.filter((_, j) => j !== i))}
+                  >
+                    &times;
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div className="bd-total">
+              <span>TOTAL</span>
+              <span>£{bagTotal}</span>
+            </div>
+            <button
+              className="bd-checkout"
+              onClick={() => {
+                setToast('Concept demo — checkout is not connected');
+                clearTimeout(toastTimer.current);
+                toastTimer.current = setTimeout(() => setToast(null), 2600);
+              }}
+            >
+              CHECKOUT
+            </button>
+          </>
+        )}
+        <div className="bd-note">Concept demo · no payment is taken</div>
+      </aside>
 
       <div id="stopinfo" className={`ui ${entered ? '' : 'hidden'}`}>
         <div id="stoptitle">{STOPS[stop].title}</div>
@@ -153,8 +203,14 @@ export default function Boutique() {
               key={i}
               className={`stoppill ${i === stop ? 'active' : ''}`}
               onClick={() => goTo(i)}
+              title={COLLECTIONS[s.collection].tagline}
             >
-              {s.title}
+              <img
+                src={COLLECTIONS[s.collection].models[0].replace('w=900&h=1300', 'w=120&h=120')}
+                alt=""
+                onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+              />
+              <span>{s.title}</span>
             </button>
           ))}
         </div>
@@ -267,12 +323,7 @@ export default function Boutique() {
           onClose={() => setCatalogOpen(false)}
           onVisit={(ci) => { setCatalogOpen(false); goTo(ci); }}
           onTryOn={(ci) => { setCatalogOpen(false); setTryOn(ci); }}
-          onAdd={(c, p) => {
-            setBag((b) => b + 1);
-            setToast(`${p.n} (${c.name}) added to your bag — concept demo`);
-            clearTimeout(toastTimer.current);
-            toastTimer.current = setTimeout(() => setToast(null), 2600);
-          }}
+          onAdd={pushToBag}
         />
       )}
 
