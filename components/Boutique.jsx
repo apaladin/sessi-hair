@@ -26,6 +26,12 @@ export default function Boutique() {
   const collection =
     STOPS[stop]?.collection !== undefined ? COLLECTIONS[STOPS[stop].collection] : null;
 
+  /* the 3D page owns the viewport — no page scroll */
+  useEffect(() => {
+    document.body.classList.add('lock');
+    return () => document.body.classList.remove('lock');
+  }, []);
+
   /* mount the three.js scene */
   useEffect(() => {
     let api;
@@ -130,7 +136,10 @@ export default function Boutique() {
 
       {/* chrome */}
       <header id="topbar" className={`ui ${entered ? '' : 'hidden'}`}>
-        <div className="brand">S E S S I &nbsp; H A I R</div>
+        <div className="brandwrap">
+          <div className="brand">S E S S I &nbsp; H A I R</div>
+          <a id="editoriallink" href="/editorial">EDITORIAL&nbsp;VIEW</a>
+        </div>
         <div className="topright">
           <button id="catalogbtn" onClick={() => setCatalogOpen(true)}>
             THE CATALOGUE

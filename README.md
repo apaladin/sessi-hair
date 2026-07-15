@@ -42,7 +42,14 @@ folder. Framework preset: **Next.js** (auto-detected). No environment variables.
   All processing happens on-device.
 - **Add to bag** is a concept interaction — checkout is not connected
 
-Deep links for demos: `?autoplay=1&stop=N` (0–7) and `&tryon=N` (collection 0–4).
+Deep links for demos: `?autoplay=1&stop=N` (0–4) and `&tryon=N` (collection 0–4).
+
+## Two views
+
+- `/` — the 3D boutique (walkable store)
+- `/editorial` — the editorial view: the same collections, reviews and
+  Try It On mirror as one elegant scrolling page, no 3D. Each view links
+  to the other from its header.
 
 ## Structure
 
