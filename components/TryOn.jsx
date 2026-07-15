@@ -136,6 +136,14 @@ export default function TryOn({ initialCollection = 0, onClose }) {
 
   const col = COLLECTIONS[shade];
 
+  /* demo deep-link: ?sample=1 preloads the first sample model */
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has('sample')) {
+      loadUrl(TRYON_SAMPLES[0], true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const render = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;

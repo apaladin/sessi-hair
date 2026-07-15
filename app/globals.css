@@ -351,6 +351,36 @@ html, body {
   transition: background .3s;
 }
 .p-add:hover { background: var(--espresso); }
+.p-rev-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--champ);
+}
+.p-rev-label { font-size: 9px; letter-spacing: .35em; color: var(--gold-d); }
+.p-rev-score { font-size: 11px; color: var(--espresso); letter-spacing: .04em; }
+.p-review { display: flex; gap: 10px; margin-top: 12px; }
+.p-review img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 1px solid var(--champ);
+}
+.p-rev-name { font-size: 11.5px; font-weight: 500; letter-spacing: .04em; }
+.p-rev-name i { font-style: normal; color: var(--muted); font-weight: 300; margin-left: 4px; }
+.p-stars { color: var(--gold-d); margin-left: 6px; font-size: 10px; letter-spacing: .1em; }
+.p-review p {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  font-weight: 300;
+  line-height: 1.55;
+  color: #4c4234;
+  text-align: left;
+}
 .p-note { margin-top: 14px; text-align: center; font-size: 10px; letter-spacing: .06em; color: var(--muted); }
 
 /* ---------- toast ---------- */

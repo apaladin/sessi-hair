@@ -218,6 +218,31 @@ export default function Boutique() {
             >
               ✦ &nbsp;TRY IT ON — THE MIRROR
             </button>
+            <div className="p-rev-head">
+              <span className="p-rev-label">CLIENT WORDS</span>
+              <span className="p-rev-score">
+                ★ {collection.rating} · {collection.count} reviews
+              </span>
+            </div>
+            {collection.reviews.map((r) => (
+              <div className="p-review" key={r.name}>
+                <img
+                  src={r.img}
+                  alt={r.name}
+                  onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                />
+                <div>
+                  <div className="p-rev-name">
+                    {r.name} <i>{r.where}</i>
+                    <span className="p-stars">
+                      {'★'.repeat(r.stars)}
+                      {'☆'.repeat(5 - r.stars)}
+                    </span>
+                  </div>
+                  <p>{r.text}</p>
+                </div>
+              </div>
+            ))}
             <div className="p-note">Ethically sourced · Double-drawn · With you in 48h</div>
           </>
         )}
