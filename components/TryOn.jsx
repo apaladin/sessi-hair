@@ -15,11 +15,40 @@ function mulberry(seed) {
   };
 }
 
+/* The three handmade pieces a client can try — matching real product forms. */
+export const HAIR_STYLES = [
+  { key: 'sleek', label: 'Sleek', amp: 2.5, freq: 1.6, flareMul: 0.78, count: 160, width: 1 },
+  { key: 'waves', label: 'Soft Waves', amp: 11, freq: 3.2, flareMul: 1.0, count: 175, width: 1 },
+  { key: 'full', label: 'Full Volume', amp: 6.5, freq: 2.2, flareMul: 1.4, count: 235, width: 1.3 },
+];
+
+/* stroke one strand as a wavy polyline along a cubic bezier */
+function strokeStrand(g, x0, y0, c1x, c1y, c2x, c2y, tx, ty, amp, freq, phase) {
+  const n = 22;
+  g.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const mt = 1 - t;
+    const x = mt ** 3 * x0 + 3 * mt * mt * t * c1x + 3 * mt * t * t * c2x + t ** 3 * tx;
+    const y = mt ** 3 * y0 + 3 * mt * mt * t * c1y + 3 * mt * t * t * c2y + t ** 3 * ty;
+    // derivative for the normal direction
+    const dx = 3 * mt * mt * (c1x - x0) + 6 * mt * t * (c2x - c1x) + 3 * t * t * (tx - c2x);
+    const dy = 3 * mt * mt * (c1y - y0) + 6 * mt * t * (c2y - c1y) + 3 * t * t * (ty - c2y);
+    const dl = Math.hypot(dx, dy) || 1;
+    const off = Math.sin(t * freq * Math.PI * 2 + phase) * amp * Math.min(1, t * 2.5);
+    const px = x + (-dy / dl) * off;
+    const py = y + (dx / dl) * off;
+    if (i === 0) g.moveTo(px, py);
+    else g.lineTo(px, py);
+  }
+  g.stroke();
+}
+
 /* Draw hair the way a handmade piece sits on a real head: strands rise from a
    soft side-parting on the crown, hug the sides of the face, then fall and
    flare. Three passes — seated shadow, dense base, fine highlights — so the
    piece looks anchored to the uploaded photo rather than pasted on. */
-function drawHair(g, cx, cy, size, length, top, bottom) {
+function drawHair(g, cx, cy, size, length, top, bottom, style) {
   const rnd = mulberry(42);
   const rx = 92 * size;                       // head half-width
   const crownY = cy - rx * 0.72;              // top of head
@@ -39,7 +68,7 @@ function drawHair(g, cx, cy, size, length, top, bottom) {
     // strands flow away from the parting, like combed hair
     const side = Math.cos(a) >= part * 0.9 ? 1 : -1;
     const hug = rx * (1.02 + rnd() * 0.22);           // hugs the cheek
-    const flare = rx * (0.55 + rnd() * 0.85);         // flares past the jaw
+    const flare = rx * (0.55 + rnd() * 0.85) * style.flareMul;
     const tipX = cx + side * (rx * 0.45 + flare * (0.4 + rnd() * 0.6));
     const tipY = jawY + L * (0.72 + rnd() * 0.45);
     emit(
@@ -49,6 +78,11 @@ function drawHair(g, cx, cy, size, length, top, bottom) {
       tipX, tipY
     );
   };
+  const wob = () => ({
+    amp: style.amp * (0.6 + rnd() * 0.8) * size,
+    freq: style.freq * (0.8 + rnd() * 0.4),
+    phase: rnd() * Math.PI * 2,
+  });
 
   g.save();
   g.lineCap = 'round';
@@ -59,17 +93,16 @@ function drawHair(g, cx, cy, size, length, top, bottom) {
   g.strokeStyle = 'rgba(20,12,6,0.16)';
   for (let i = 0; i < 55; i++) {
     strandPath((x0, y0, c1x, c1y, c2x, c2y, tx, ty) => {
+      const w = wob();
       g.lineWidth = 5 + rnd() * 6;
-      g.beginPath();
-      g.moveTo(x0, y0 + 4);
-      g.bezierCurveTo(c1x + 5, c1y + 6, c2x + 5, c2y + 6, tx + 4, ty + 5);
-      g.stroke();
+      strokeStrand(g, x0, y0 + 4, c1x + 5, c1y + 6, c2x + 5, c2y + 6, tx + 4, ty + 5,
+        w.amp, w.freq, w.phase);
     });
   }
   g.restore();
 
   // pass 2 — dense base coat
-  for (let i = 0; i < 170; i++) {
+  for (let i = 0; i < style.count; i++) {
     strandPath((x0, y0, c1x, c1y, c2x, c2y, tx, ty) => {
       const grad = g.createLinearGradient(x0, y0, tx, ty);
       const cA = rnd() > 0.35 ? mid : lo;
@@ -77,11 +110,9 @@ function drawHair(g, cx, cy, size, length, top, bottom) {
       grad.addColorStop(0, `rgba(${cA.map(Math.round).join(',')},${0.55 + rnd() * 0.35})`);
       grad.addColorStop(1, `rgba(${cB.map(Math.round).join(',')},${0.3 + rnd() * 0.3})`);
       g.strokeStyle = grad;
-      g.lineWidth = 1.6 + rnd() * 2.6;
-      g.beginPath();
-      g.moveTo(x0, y0);
-      g.bezierCurveTo(c1x, c1y, c2x, c2y, tx, ty);
-      g.stroke();
+      g.lineWidth = (1.6 + rnd() * 2.6) * style.width;
+      const w = wob();
+      strokeStrand(g, x0, y0, c1x, c1y, c2x, c2y, tx, ty, w.amp, w.freq, w.phase);
     });
   }
 
@@ -93,10 +124,8 @@ function drawHair(g, cx, cy, size, length, top, bottom) {
       grad.addColorStop(1, `rgba(${hi.map(Math.round).join(',')},0.08)`);
       g.strokeStyle = grad;
       g.lineWidth = 0.8 + rnd() * 1.1;
-      g.beginPath();
-      g.moveTo(x0, y0);
-      g.bezierCurveTo(c1x, c1y, c2x, c2y, tx, ty);
-      g.stroke();
+      const w = wob();
+      strokeStrand(g, x0, y0, c1x, c1y, c2x, c2y, tx, ty, w.amp, w.freq, w.phase);
     });
   }
 
@@ -127,6 +156,7 @@ export default function TryOn({ initialCollection = 0, onClose }) {
   const fileRef = useRef(null);
 
   const [shade, setShade] = useState(initialCollection);
+  const [styleIdx, setStyleIdx] = useState(1);
   const [size, setSize] = useState(1.0);
   const [length, setLength] = useState(1.0);
   const [anchor, setAnchor] = useState({ x: CW / 2, y: 205 });
@@ -169,9 +199,9 @@ export default function TryOn({ initialCollection = 0, onClose }) {
       g.fillText('Your photo never leaves this device.', CW / 2, CH / 2 + 20);
     }
     if (img && showHair) {
-      drawHair(g, anchor.x, anchor.y, size, length, col.top, col.bottom);
+      drawHair(g, anchor.x, anchor.y, size, length, col.top, col.bottom, HAIR_STYLES[styleIdx]);
     }
-  }, [anchor, size, length, col, showHair]);
+  }, [anchor, size, length, col, showHair, styleIdx]);
 
   useEffect(() => { render(); }, [render, hasPhoto]);
 
@@ -281,6 +311,21 @@ export default function TryOn({ initialCollection = 0, onClose }) {
                 ))}
               </div>
               <div className="t-shadename">{col.name}</div>
+            </div>
+
+            <div className="t-group">
+              <div className="t-caption">THE PIECE</div>
+              <div className="t-styles">
+                {HAIR_STYLES.map((s, i) => (
+                  <button
+                    key={s.key}
+                    className={`t-style ${i === styleIdx ? 'sel' : ''}`}
+                    onClick={() => setStyleIdx(i)}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="t-group">

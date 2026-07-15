@@ -529,6 +529,21 @@ html, body {
   font-size: 15px;
   color: var(--espresso);
 }
+.t-styles { display: flex; gap: 6px; }
+.t-style {
+  flex: 1;
+  padding: 9px 4px;
+  background: transparent;
+  border: 1px solid var(--champ);
+  color: var(--espresso);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 10px;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: border-color .25s, background .25s, color .25s;
+}
+.t-style:hover { border-color: var(--gold); }
+.t-style.sel { background: var(--ink); color: var(--champ); border-color: var(--ink); }
 .t-controls input[type='range'] {
   width: 100%;
   accent-color: var(--gold-d);
